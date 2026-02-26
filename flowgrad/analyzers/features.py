@@ -237,24 +237,52 @@ class FeatureAnalyzer:
     # ------------------------------------------------------------------
     # 2. Feature Combination Suggestions
     # ------------------------------------------------------------------
+    @staticmethod
+    def _compute_vif(X: np.ndarray, col_idx: int) -> float:
+        """Compute Variance Inflation Factor for a single column."""
+        y_col = X[:, col_idx]
+        other_cols = np.delete(X, col_idx, axis=1)
+
+        if other_cols.shape[1] == 0 or np.std(y_col) < 1e-10:
+            return 1.0
+
+        # VIF = 1 / (1 - R²)
+        try:
+            # Fast OLS via normal equation
+            X_aug = np.column_stack([np.ones(len(other_cols)), other_cols])
+            beta = np.linalg.lstsq(X_aug, y_col, rcond=None)[0]
+            y_hat = X_aug @ beta
+            ss_res = np.sum((y_col - y_hat) ** 2)
+            ss_tot = np.sum((y_col - y_col.mean()) ** 2)
+            r_squared = 1 - ss_res / max(ss_tot, 1e-10)
+            r_squared = min(r_squared, 0.9999)  # cap to avoid inf
+            return 1.0 / (1.0 - r_squared)
+        except Exception:
+            return 1.0
+
     def suggest_features(
         self,
         top_k: int = 10,
         operations: Optional[List[str]] = None,
         sample_size: Optional[int] = None,
+        collinearity_check: bool = True,
+        vif_threshold: float = 10.0,
     ) -> List[Dict[str, Any]]:
         """
         Suggest new feature combinations that could improve the model.
 
         Tests A*B, A/B, A-B, A+B and scores each against the target.
+        Optionally checks collinearity (VIF) to flag redundant combinations.
 
         Args:
             top_k: Number of suggestions to return.
             operations: List of operations to try. Default: ['multiply', 'divide', 'subtract', 'add'].
             sample_size: Subsample for speed.
+            collinearity_check: If True, compute VIF for each suggestion.
+            vif_threshold: VIF above this → collinearity warning.
 
         Returns:
-            List of {expression, operation, feat_a, feat_b, target_correlation, lift}
+            List of dicts with expression, lift, vif_score, collinearity_warning.
         """
         if operations is None:
             operations = ["multiply", "divide", "subtract", "add"]
@@ -319,8 +347,17 @@ class FeatureAnalyzer:
 
                 lift = corr - baseline
 
+                # VIF check: does this new feature add collinearity?
+                vif_score = None
+                collinearity_warning = False
+                if collinearity_check and lift > 0:
+                    X_augmented = np.column_stack([X_s[mask], values[mask].reshape(-1, 1)])
+                    new_col_idx = X_augmented.shape[1] - 1
+                    vif_score = self._compute_vif(X_augmented, new_col_idx)
+                    collinearity_warning = vif_score > vif_threshold
+
                 op_name = expr.split(" ")[1]  # *, /, -, +
-                results.append({
+                entry = {
                     "expression": expr,
                     "operation": op_name,
                     "feat_a": self.feature_names[i],
@@ -328,7 +365,12 @@ class FeatureAnalyzer:
                     "target_correlation": round(float(corr), 4),
                     "baseline_correlation": round(float(baseline), 4),
                     "lift": round(float(lift), 4),
-                })
+                }
+                if collinearity_check:
+                    entry["vif_score"] = round(float(vif_score), 2) if vif_score is not None else None
+                    entry["collinearity_warning"] = collinearity_warning
+
+                results.append(entry)
 
         # Sort by lift (how much better than individual features)
         results.sort(key=lambda x: x["lift"], reverse=True)

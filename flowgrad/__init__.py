@@ -18,17 +18,19 @@ Usage (XGBoost / LightGBM / CatBoost):
     tracker.report()
 """
 
-__version__ = "0.2.0"
+__version__ = "0.3.0"
 
 from flowgrad.tracker import FlowTracker
 from flowgrad.analyzers.boosting import BoostingTracker
 from flowgrad.analyzers.sklearn_tracker import SklearnTracker
 from flowgrad.analyzers.features import FeatureAnalyzer
+from flowgrad.analyzers.compression import CompressionTracker
 
 __all__ = [
     "FlowTracker",
     "BoostingTracker",
     "SklearnTracker",
     "FeatureAnalyzer",
+    "CompressionTracker",
     "__version__",
 ]

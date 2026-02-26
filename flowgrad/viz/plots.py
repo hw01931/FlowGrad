@@ -610,3 +610,203 @@ class BoostingPlotAPI:
                 spine.set_color(PALETTE["grid"])
 
         return fig
+
+
+# ======================================================================
+#  Compression Plot API
+# ======================================================================
+
+class CompressionPlotAPI:
+    """Visualization for model compression analysis."""
+
+    def __init__(self, tracker):
+        self.tracker = tracker
+
+    def tradeoff_curve(self, figsize=(10, 6)) -> Figure:
+        """
+        Pareto frontier: model size vs performance.
+
+        Each snapshot is a point; the Pareto front connects non-dominated points.
+        Highlights the optimal compression point.
+        """
+        snaps = self.tracker.snapshots
+        if not snaps:
+            fig, ax = plt.subplots(figsize=figsize)
+            _apply_style(fig, ax)
+            ax.text(0.5, 0.5, "No snapshots recorded", ha="center", va="center",
+                    color=PALETTE["text"])
+            return fig
+
+        fig, ax = plt.subplots(figsize=figsize)
+        _apply_style(fig, ax)
+
+        sizes = [s.model_size_mb for s in snaps]
+        scores = [s.eval_metrics.get("score", 0) for s in snaps]
+        names = [s.name for s in snaps]
+        sparsities = [s.sparsity for s in snaps]
+
+        # Color by sparsity
+        scatter = ax.scatter(sizes, scores, c=sparsities, cmap="RdYlGn_r",
+                            s=100, zorder=5, edgecolors="white", linewidth=0.5)
+        cbar = fig.colorbar(scatter, ax=ax, label="Sparsity")
+        cbar.ax.yaxis.label.set_color(PALETTE["text"])
+        cbar.ax.tick_params(colors=PALETTE["text"])
+
+        # Annotate points
+        for i, name in enumerate(names):
+            ax.annotate(name, (sizes[i], scores[i]), textcoords="offset points",
+                       xytext=(5, 5), fontsize=6, color=PALETTE["text"], alpha=0.8)
+
+        # Connect with line (sorted by size)
+        sorted_idx = sorted(range(len(sizes)), key=lambda i: sizes[i])
+        ax.plot([sizes[i] for i in sorted_idx], [scores[i] for i in sorted_idx],
+                color=PALETTE["info"], alpha=0.4, linewidth=1, linestyle="--")
+
+        # Mark original and best
+        if snaps:
+            ax.scatter([sizes[0]], [scores[0]], s=200, marker="*",
+                      color=PALETTE["warning"], zorder=6, label="Original")
+
+            # Best = highest sparsity with good score
+            orig_score = scores[0]
+            valid = [(i, s) for i, s in enumerate(snaps) if s.eval_metrics.get("score", 0) >= orig_score * 0.95]
+            if valid and len(valid) > 1:
+                best_idx = max(valid, key=lambda x: x[1].sparsity)[0]
+                ax.scatter([sizes[best_idx]], [scores[best_idx]], s=200, marker="D",
+                          color=PALETTE["success"], zorder=6, label="Optimal")
+
+        # Performance floor line
+        if scores:
+            floor = scores[0] * 0.95
+            ax.axhline(y=floor, color=PALETTE["danger"], linestyle=":", alpha=0.7,
+                      label="95% floor")
+
+        ax.set_xlabel("Model Size (MB)")
+        ax.set_ylabel("Performance Score")
+        ax.set_title("Compression Tradeoff Curve")
+        ax.legend(facecolor=PALETTE["bg"], edgecolor=PALETTE["grid"],
+                 labelcolor=PALETTE["text"], fontsize=8)
+
+        fig.tight_layout()
+        return fig
+
+    def layer_sensitivity_heatmap(self, figsize=(12, 6)) -> Figure:
+        """
+        Heatmap: layers × sparsity levels → performance score.
+
+        Reveals which layers can be aggressively pruned vs which are critical.
+        """
+        sensitivity = self.tracker._sensitivity_cache
+
+        if not sensitivity:
+            fig, ax = plt.subplots(figsize=figsize)
+            _apply_style(fig, ax)
+            ax.text(0.5, 0.5, "Run tracker.layer_sensitivity() first",
+                    ha="center", va="center", color=PALETTE["text"])
+            return fig
+
+        fig, ax = plt.subplots(figsize=figsize)
+        _apply_style(fig, ax)
+
+        layer_names = list(sensitivity.keys())
+        # Get sparsity levels from first layer
+        sparsity_levels = [sp for sp, _ in sensitivity[layer_names[0]]]
+
+        # Build matrix: rows=layers, cols=sparsity, values=performance drop %
+        baseline = max(sc for _, sc in sensitivity[layer_names[0]])
+        matrix = np.zeros((len(layer_names), len(sparsity_levels)))
+
+        for i, layer in enumerate(layer_names):
+            for j, (sp, score) in enumerate(sensitivity[layer]):
+                drop_pct = (baseline - score) / max(abs(baseline), 1e-10) * 100
+                matrix[i, j] = drop_pct
+
+        im = ax.imshow(matrix, aspect="auto", cmap="RdYlGn_r", interpolation="nearest")
+        cbar = fig.colorbar(im, ax=ax, label="Performance Drop (%)")
+        cbar.ax.yaxis.label.set_color(PALETTE["text"])
+        cbar.ax.tick_params(colors=PALETTE["text"])
+
+        # Labels
+        short_names = [_short_name(n) for n in layer_names]
+        ax.set_yticks(range(len(short_names)))
+        ax.set_yticklabels(short_names, fontsize=7)
+        ax.set_xticks(range(len(sparsity_levels)))
+        ax.set_xticklabels([f"{s:.0%}" for s in sparsity_levels], fontsize=8)
+        ax.set_xlabel("Pruning Sparsity")
+        ax.set_ylabel("Layer")
+        ax.set_title("Layer Sensitivity to Pruning")
+
+        # Annotate cells
+        for i in range(len(layer_names)):
+            for j in range(len(sparsity_levels)):
+                val = matrix[i, j]
+                color = "white" if val > matrix.max() * 0.5 else PALETTE["text"]
+                ax.text(j, i, f"{val:.1f}", ha="center", va="center",
+                       fontsize=6, color=color)
+
+        fig.tight_layout()
+        return fig
+
+    def compression_timeline(self, figsize=(12, 5)) -> Figure:
+        """
+        Bar chart comparing all snapshots: size, params, and performance.
+        """
+        snaps = self.tracker.snapshots
+
+        if not snaps:
+            fig, ax = plt.subplots(figsize=figsize)
+            _apply_style(fig, ax)
+            ax.text(0.5, 0.5, "No snapshots recorded", ha="center", va="center",
+                    color=PALETTE["text"])
+            return fig
+
+        fig, axes = plt.subplots(1, 3, figsize=figsize)
+        _apply_style(fig, axes)
+
+        names = [s.name[:15] for s in snaps]
+        x = range(len(names))
+
+        # 1) Model size
+        sizes = [s.model_size_mb for s in snaps]
+        axes[0].bar(x, sizes, color=PALETTE["primary"], alpha=0.85)
+        axes[0].set_ylabel("Size (MB)")
+        axes[0].set_title("Model Size")
+        axes[0].set_xticks(x)
+        axes[0].set_xticklabels(names, rotation=45, ha="right", fontsize=6)
+
+        # 2) Non-zero params
+        params = [s.nonzero_params / 1000 for s in snaps]
+        axes[1].bar(x, params, color=PALETTE["info"], alpha=0.85)
+        axes[1].set_ylabel("Params (K)")
+        axes[1].set_title("Active Parameters")
+        axes[1].set_xticks(x)
+        axes[1].set_xticklabels(names, rotation=45, ha="right", fontsize=6)
+
+        # 3) Performance
+        scores = [s.eval_metrics.get("score", 0) for s in snaps]
+        colors = []
+        orig_score = scores[0] if scores else 1
+        for s in scores:
+            ratio = s / orig_score if orig_score > 0 else 1
+            if ratio >= 0.95:
+                colors.append(PALETTE["success"])
+            elif ratio >= 0.90:
+                colors.append(PALETTE["warning"])
+            else:
+                colors.append(PALETTE["danger"])
+
+        axes[2].bar(x, scores, color=colors, alpha=0.85)
+        axes[2].set_ylabel("Score")
+        axes[2].set_title("Performance")
+        axes[2].set_xticks(x)
+        axes[2].set_xticklabels(names, rotation=45, ha="right", fontsize=6)
+        # Floor line
+        if orig_score > 0:
+            axes[2].axhline(y=orig_score * 0.95, color=PALETTE["danger"],
+                          linestyle=":", alpha=0.7, label="95% floor")
+            axes[2].legend(fontsize=6, facecolor=PALETTE["bg"],
+                         edgecolor=PALETTE["grid"], labelcolor=PALETTE["text"])
+
+        fig.suptitle("Compression Timeline", color=PALETTE["text"], fontsize=14)
+        fig.tight_layout()
+        return fig

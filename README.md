@@ -151,9 +151,9 @@ analyzer = FeatureAnalyzer(model, X_train, y_train, feature_names=feature_names)
 interactions = analyzer.interactions(top_k=10)
 # → [{"feat_a": "age", "feat_b": "income", "synergy_score": +0.12}, ...]
 
-# 2. Feature Suggestions — what new features should I create?
-suggestions = analyzer.suggest_features(top_k=10)
-# → [{"expression": "age * income", "lift": +0.08, "target_correlation": 0.72}, ...]
+# 2. Feature Suggestions — with VIF collinearity check
+suggestions = analyzer.suggest_features(top_k=10, collinearity_check=True, vif_threshold=10.0)
+# → [{"expression": "age * income", "lift": +0.08, "vif_score": 3.2, "collinearity_warning": False}, ...]
 
 # 3. Redundancy Detection — which features are near-duplicates?
 redundant = analyzer.redundant_features(threshold=0.95)
@@ -176,6 +176,46 @@ analyzer.report()
 | `plot.suggestion_chart()` | Top combinations ranked by lift |
 | `plot.redundancy_graph()` | Network graph of redundant feature pairs |
 | `plot.cluster_map()` | Grouped feature visualization |
+
+</details>
+
+### 🗜️ Model Compression — _Goal-Based Auto Search_
+
+Set a performance floor → FlowGrad finds the maximum compression automatically.
+
+```python
+from flowgrad import CompressionTracker
+
+tracker = CompressionTracker(model, eval_fn=lambda m: accuracy(m, X_val, y_val))
+
+# "Keep 95% accuracy, compress as much as possible"
+result = tracker.auto_compress(
+    method="pruning",
+    performance_floor=0.95,
+    search_range=(0.1, 0.9),
+)
+# → "Sparsity 62% is optimal. Size reduced 62%, accuracy 97.3% retained."
+
+# Layer sensitivity — which layers can be pruned aggressively?
+tracker.layer_sensitivity(sparsity_levels=[0.1, 0.3, 0.5, 0.7, 0.9])
+
+# Non-uniform pruning: prune safe layers more, sensitive layers less
+tracker.recommend_nonuniform(performance_floor=0.95)
+
+tracker.report()
+tracker.plot.tradeoff_curve()            # Pareto frontier
+tracker.plot.layer_sensitivity_heatmap() # Which layers tolerate pruning
+tracker.plot.compression_timeline()      # Snapshot comparison
+```
+
+<details>
+<summary>📊 Available Compression Plots</summary>
+
+| Method | What it shows |
+|---|---|
+| `plot.tradeoff_curve()` | Pareto frontier: model size vs performance |
+| `plot.layer_sensitivity_heatmap()` | Layers × sparsity → performance drop |
+| `plot.compression_timeline()` | Side-by-side snapshot comparison bars |
 
 </details>
 
@@ -207,7 +247,8 @@ FlowGrad doesn't just visualize — it **diagnoses problems and prescribes fixes
 |---|---|
 | **DL Layers** | Weight norm/mean/std, gradient norm/SNR, velocity (ΔW), acceleration (ΔΔW), dead neuron ratio |
 | **Boosting Rounds** | Per-round feature importance, train/valid eval metrics, overfitting gap |
-| **Feature Engineering** | Pairwise synergy, combination lift, redundancy correlation, cluster cohesion |
+| **Feature Engineering** | Pairwise synergy, combination lift + VIF, redundancy correlation, cluster cohesion |
+| **Model Compression** | Sparsity, model size, layer sensitivity, Pareto frontier, non-uniform pruning |
 
 ## Examples
 
@@ -221,6 +262,7 @@ FlowGrad doesn't just visualize — it **diagnoses problems and prescribes fixes
 | `BoostingTracker()` | Boosting round tracking | XGBoost / LightGBM / CatBoost callback |
 | `SklearnTracker()` | sklearn model tracking | Any sklearn estimator |
 | `FeatureAnalyzer(model, X, y)` | Feature engineering analysis | Any fitted model + data |
+| `CompressionTracker(model, eval_fn)` | Model compression search | PyTorch `nn.Module` + eval function |
 
 Every tracker exposes:
 - `.report()` → text diagnostics
@@ -232,9 +274,10 @@ Every tracker exposes:
 
 - [x] v0.1 — DL Tracker + Boosting Tracker
 - [x] v0.2 — scikit-learn support + Feature Engineering
-- [ ] v0.3 — RecSys module (embedding drift, coverage, cold start)
-- [ ] v0.4 — Plotly interactive dashboards
-- [ ] v0.5 — PyPI release
+- [x] v0.3 — Model Compression (auto-search, layer sensitivity, VIF)
+- [ ] v0.4 — RecSys module (embedding drift, coverage, cold start)
+- [ ] v0.5 — Plotly interactive dashboards
+- [ ] v1.0 — PyPI release
 
 ## License
 
