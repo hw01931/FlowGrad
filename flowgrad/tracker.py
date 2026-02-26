@@ -63,6 +63,9 @@ class FlowTracker:
         track_dead_neurons: bool = True,
         include_bias: bool = False,
         device: Optional[str] = None,
+        optimizer=None,
+        scheduler=None,
+        run_name: str = "current_run",
     ):
         torch = _get_torch()
 
@@ -71,6 +74,9 @@ class FlowTracker:
         self.track_weights = track_weights
         self.track_dead_neurons = track_dead_neurons
         self.include_bias = include_bias
+        self.optimizer = optimizer
+        self.scheduler = scheduler
+        self.run_name = run_name
         self.store = SnapshotStore()
 
         self._step_count = 0
@@ -92,6 +98,32 @@ class FlowTracker:
         # Register gradient hooks
         if self.track_gradients:
             self._register_grad_hooks()
+
+    def export_for_agent(self, include_history: bool = True, save: bool = True) -> str:
+        """
+        Exports training context and diagnostics as structured XML for AI Assistants
+        (Cursor, Copilot, Antigravity, etc.).
+
+        The output includes:
+        - Experiment history (previous runs from .flowgrad/history.jsonl)
+        - Current environment (optimizer, scheduler, architecture)
+        - Training state (step, loss)
+        - Diagnostics with math/logic explanations and prescriptions
+
+        Args:
+            include_history: Whether to include previous experiment runs.
+            save: Whether to save this run to the history file.
+
+        Returns:
+            XML string optimized for AI agent parsing.
+        """
+        from flowgrad.agent import AgentExporter
+        return AgentExporter.export_dl(
+            self,
+            run_name=self.run_name,
+            include_history=include_history,
+            save=save
+        )
 
     def _register_grad_hooks(self):
         """Register backward hooks on all tracked parameters."""
