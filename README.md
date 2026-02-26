@@ -1,25 +1,50 @@
-# FlowGrad 🌊
+<p align="center">
+  <h1 align="center">🌊 FlowGrad</h1>
+  <p align="center">
+    <strong>One-line training diagnostics & feature engineering for Deep Learning, Machine Learning, and RecSys.</strong>
+  </p>
+  <p align="center">
+    <a href="#installation">Installation</a> •
+    <a href="#quick-start">Quick Start</a> •
+    <a href="#features">Features</a> •
+    <a href="#examples">Examples</a> •
+    <a href="#api-reference">API</a>
+  </p>
+</p>
 
-**ML 학습 과정 진단 + 피처 엔지니어링 라이브러리** — 코드 한 줄로 모델 학습 역학을 추적하고, 피처 상호작용을 분석합니다.
+---
 
-## ✨ Features
+**FlowGrad** tracks your model's training dynamics in real time, detects hidden feature synergies, and prescribes fixes — all with a single line of code.
 
-- 🔬 **PyTorch**: 레이어별 가중치 속도·가속도·건강 상태 자동 추적
-- 🌲 **XGBoost / LightGBM / CatBoost**: 라운드별 피처 중요도 변화·과적합 탐지
-- � **scikit-learn**: GradientBoosting(warm_start), RandomForest(per-tree), SGD(partial_fit) 지원
-- 🧪 **Feature Engineering**: 피처 상호작용·조합 제안·중복 탐지·클러스터링
-- �📊 **시각화**: 다크 테마 대시보드, 히트맵, SNR 차트 등 15+ 차트
-- 💊 **자동 진단**: 정체·폭주·과적합 탐지 + 텍스트 처방
+```python
+tracker = FlowTracker(model)          # That's it. Training diagnostics enabled.
+analyzer = FeatureAnalyzer(model, X, y)  # Discover features you didn't know existed.
+```
+
+## Why FlowGrad?
+
+| What you do today | What FlowGrad does differently |
+|---|---|
+| `df.corr()` — linear correlation only | **Non-linear interaction & synergy** detection |
+| `model.feature_importances_` — static, post-hoc | **Real-time** importance tracking across rounds |
+| SHAP — "why this prediction?" | **"What features should I create?"** — actionable suggestions |
+| TensorBoard — manual logging, boilerplate | **Zero-config**, one-line setup |
+
+## Installation
+
+```bash
+# From GitHub
+pip install git+https://github.com/hw01931/FlowGrad.git
+
+# With all optional dependencies (PyTorch, XGBoost, LightGBM, CatBoost, sklearn)
+pip install "flowgrad[all] @ git+https://github.com/hw01931/FlowGrad.git"
+```
 
 ## Quick Start
 
-### Installation
+### 🔬 Deep Learning (PyTorch)
 
-```bash
-pip install -e ".[all]"
-```
-
-### 1. PyTorch — DL Training Tracker
+Track layer-wise weight velocity, gradient health, and dead neurons automatically.
 
 ```python
 from flowgrad import FlowTracker
@@ -28,116 +53,189 @@ tracker = FlowTracker(model)
 
 for epoch in range(100):
     loss = train_one_epoch(model, loader, optimizer)
-    tracker.step(loss=loss.item())
+    tracker.step(loss=loss.item())   # ← just add this line
 
-tracker.report()                  # 종합 진단 리포트
-tracker.plot.velocity_heatmap()   # 레이어별 학습 속도 히트맵
-tracker.plot.health_dashboard()   # 레이어 건강 상태
-tracker.plot.full_report()        # 종합 대시보드 (6개 차트)
+tracker.report()                     # text diagnostics with prescriptions
+tracker.plot.full_report()           # 6-panel visual dashboard
 ```
 
-### 2. XGBoost / LightGBM / CatBoost
+<details>
+<summary>📊 Available DL Plots</summary>
+
+| Method | What it shows |
+|---|---|
+| `plot.loss()` | Training loss curve |
+| `plot.velocity_heatmap()` | Layer × Step heatmap — hot = fast learning |
+| `plot.gradient_flow()` | Per-layer gradient magnitude (detects vanishing/exploding) |
+| `plot.weight_distribution()` | Weight norm & std evolution per layer |
+| `plot.health_dashboard()` | 0–100 health score per layer |
+| `plot.gradient_snr()` | Gradient signal-to-noise ratio over time |
+| `plot.full_report()` | All-in-one 6-panel dashboard |
+
+</details>
+
+### 🌲 Gradient Boosting (XGBoost / LightGBM / CatBoost)
+
+Track feature importance drift, evaluation metrics, and overfitting — per round.
 
 ```python
 from flowgrad import BoostingTracker
 import xgboost as xgb
 
 tracker = BoostingTracker()
-model = xgb.train(params, dtrain, num_boost_round=500,
-                  evals=[(dtrain, "train"), (dvalid, "valid")],
-                  callbacks=[tracker.as_xgb_callback()])
+model = xgb.train(
+    params, dtrain,
+    num_boost_round=500,
+    evals=[(dtrain, "train"), (dval, "valid")],
+    callbacks=[tracker.as_xgb_callback()],   # ← just add this
+)
 
 tracker.report()
-tracker.plot.feature_drift()              # 피처 중요도 변화
-tracker.plot.overfitting_detector()       # 과적합 탐지
+tracker.plot.overfitting_detector()
 ```
 
 ```python
-# LightGBM
-tracker = BoostingTracker()
-model = lgb.train(params, dtrain, callbacks=[tracker.as_lgb_callback()])
+# LightGBM — same interface
+lgb.train(params, dtrain, callbacks=[tracker.as_lgb_callback()])
 
-# CatBoost
-tracker = BoostingTracker()
-model = CatBoostClassifier(iterations=500)
+# CatBoost — same interface
 model.fit(X, y, callbacks=[tracker.as_catboost_callback()])
 ```
 
-### 3. scikit-learn
+<details>
+<summary>📊 Available Boosting Plots</summary>
+
+| Method | What it shows |
+|---|---|
+| `plot.eval_metrics()` | Train/valid metric curves |
+| `plot.feature_drift()` | Feature importance change over rounds |
+| `plot.feature_importance_heatmap()` | Feature × Round heatmap |
+| `plot.overfitting_detector()` | Train-valid gap with overfitting zone highlight |
+| `plot.full_report()` | All-in-one 4-panel dashboard |
+
+</details>
+
+### 🔧 scikit-learn
+
+Works with GradientBoosting (warm_start), RandomForest (per-tree), and any `partial_fit` model.
 
 ```python
 from flowgrad import SklearnTracker
-from sklearn.ensemble import GradientBoostingClassifier, RandomForestClassifier
+from sklearn.ensemble import GradientBoostingClassifier
 
-# GradientBoosting (warm_start 방식으로 라운드별 추적)
+# Warm-start tracking (GradientBoosting)
 tracker = SklearnTracker(feature_names=feature_names)
 model = GradientBoostingClassifier(n_estimators=200, warm_start=True)
 tracker.track_warm_start(model, X_train, y_train, X_val, y_val, step_size=10)
 tracker.report()
 
-# RandomForest (개별 트리 분석)
-model = RandomForestClassifier(n_estimators=100).fit(X, y)
-tracker = SklearnTracker.from_forest(model, feature_names=feature_names)
-tracker.plot.feature_drift()  # 트리별 피처 중요도 변화
+# Per-tree analysis (RandomForest)
+tracker = SklearnTracker.from_forest(fitted_rf_model, feature_names=feature_names)
+tracker.plot.feature_drift()
 
-# SGDClassifier (partial_fit 배치별 추적)
+# Incremental learning (SGDClassifier, etc.)
 tracker = SklearnTracker()
 tracker.track_partial_fit(model, X_batches, y_batches, classes=[0, 1])
 ```
 
-### 4. Feature Engineering ⭐ (차별화 기능)
+### 🧪 Feature Engineering — _The Differentiator_
+
+Go beyond static importance. Discover **feature interactions**, get **concrete combination suggestions**, and detect **redundant features**.
 
 ```python
 from flowgrad import FeatureAnalyzer
 
 analyzer = FeatureAnalyzer(model, X_train, y_train, feature_names=feature_names)
 
-# 피처 상호작용 분석 (기존 corr()과 다르게 비선형 시너지 측정)
+# 1. Feature Interactions — which pairs have synergy?
 interactions = analyzer.interactions(top_k=10)
-# → [{"feat_a": "age", "feat_b": "income", "synergy_score": 0.12}, ...]
+# → [{"feat_a": "age", "feat_b": "income", "synergy_score": +0.12}, ...]
 
-# 피처 조합 제안 (A*B, A/B 등 자동 테스트)
+# 2. Feature Suggestions — what new features should I create?
 suggestions = analyzer.suggest_features(top_k=10)
-# → [{"expression": "age * income", "lift": 0.08, "target_correlation": 0.72}, ...]
+# → [{"expression": "age * income", "lift": +0.08, "target_correlation": 0.72}, ...]
 
-# 중복 피처 탐지
+# 3. Redundancy Detection — which features are near-duplicates?
 redundant = analyzer.redundant_features(threshold=0.95)
 # → [{"feat_a": "height_cm", "feat_b": "height_inch", "recommendation": "Drop height_inch"}]
 
-# 피처 클러스터링
+# 4. Feature Clustering — group related features
 clusters = analyzer.feature_clusters()
-# → [{"cluster_id": 0, "features": ["age", "income"], "cohesion": 0.85}, ...]
+# → [{"cluster_id": 0, "features": ["age", "income"], "cohesion": 0.85}]
 
-# 종합 리포트
+# Full text report with all of the above
 analyzer.report()
-
-# 시각화
-analyzer.plot.interaction_heatmap()   # 상호작용 히트맵
-analyzer.plot.suggestion_chart()      # 조합 제안 차트
-analyzer.plot.redundancy_graph()      # 중복 네트워크
-analyzer.plot.cluster_map()           # 클러스터 맵
 ```
 
-## 기존 도구와의 차이점
+<details>
+<summary>📊 Available Feature Engineering Plots</summary>
 
-| 기존 | FlowGrad |
+| Method | What it shows |
 |---|---|
-| `df.corr()` | 선형 상관만 | **비선형 상호작용 + 시너지** 측정 |
-| `model.feature_importances_` | 학습 끝난 후 결과론적 | **학습 중** 실시간 변화 추적 |
-| SHAP | "왜 이 예측?" (결과 해석) | **어떤 피처를 만들면 좋을지** 제안 |
-| TensorBoard | 수동 로깅 필요 | **한 줄**이면 전체 추적 시작 |
+| `plot.interaction_heatmap()` | Feature pair synergy matrix |
+| `plot.suggestion_chart()` | Top combinations ranked by lift |
+| `plot.redundancy_graph()` | Network graph of redundant feature pairs |
+| `plot.cluster_map()` | Grouped feature visualization |
 
-## Available Plots
+</details>
 
-### DL (PyTorch) — 7 charts
-`loss()` · `velocity_heatmap()` · `gradient_flow()` · `weight_distribution()` · `health_dashboard()` · `gradient_snr()` · `full_report()`
+## Features
 
-### Boosting / sklearn — 5 charts
-`eval_metrics()` · `feature_drift()` · `feature_importance_heatmap()` · `overfitting_detector()` · `full_report()`
+### 🩺 Automated Diagnostics
 
-### Feature Engineering — 4 charts
-`interaction_heatmap()` · `suggestion_chart()` · `redundancy_graph()` · `cluster_map()`
+FlowGrad doesn't just visualize — it **diagnoses problems and prescribes fixes**.
+
+```
+⚠️  Alerts & Prescriptions
+─────────────────────────────────────────────
+  🧊 STAGNATION: 'layer3.conv.weight'
+     Velocity ≈ 1.2e-09 since step 45
+     💊 Increase learning rate or remove weight decay for this layer.
+
+  💥 GRADIENT_EXPLOSION: 'layer1.fc.weight'
+     Value: 512.3 at step 12
+     💊 Add gradient clipping (max_norm=1.0) or reduce lr by 50%.
+
+  💀 DEAD NEURONS: 'layer2.relu.weight'
+     62.3% of parameters are near-zero
+     💊 Consider LeakyReLU or PReLU. Check initialization.
+```
+
+### What's tracked
+
+| Domain | Metrics |
+|---|---|
+| **DL Layers** | Weight norm/mean/std, gradient norm/SNR, velocity (ΔW), acceleration (ΔΔW), dead neuron ratio |
+| **Boosting Rounds** | Per-round feature importance, train/valid eval metrics, overfitting gap |
+| **Feature Engineering** | Pairwise synergy, combination lift, redundancy correlation, cluster cohesion |
+
+## Examples
+
+📓 **[Colab Demo Notebook](examples/demo_colab.ipynb)** — Run all features on real data (sklearn built-in datasets, zero setup required).
+
+## API Reference
+
+| Class | Purpose | Input |
+|---|---|---|
+| `FlowTracker(model)` | DL training dynamics | PyTorch `nn.Module` |
+| `BoostingTracker()` | Boosting round tracking | XGBoost / LightGBM / CatBoost callback |
+| `SklearnTracker()` | sklearn model tracking | Any sklearn estimator |
+| `FeatureAnalyzer(model, X, y)` | Feature engineering analysis | Any fitted model + data |
+
+Every tracker exposes:
+- `.report()` → text diagnostics
+- `.plot.*` → matplotlib figures
+- `.summary` → dict for programmatic access
+- `.history` → raw collected data
+
+## Roadmap
+
+- [x] v0.1 — DL Tracker + Boosting Tracker
+- [x] v0.2 — scikit-learn support + Feature Engineering
+- [ ] v0.3 — RecSys module (embedding drift, coverage, cold start)
+- [ ] v0.4 — Plotly interactive dashboards
+- [ ] v0.5 — PyPI release
 
 ## License
 
-MIT
+[MIT](LICENSE)
