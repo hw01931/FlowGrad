@@ -34,6 +34,7 @@ General DL diagnostics often fail for RecSys because embedding tables are highly
 *   **🏎️ Zero-Overhead Tracking:** Lazy evaluation with `track_interval` and strictly GPU-bound tensor operations guarantee `< 5%` performance overhead even on massive 1M+ parameter embedding tables (Verified in `examples/benchmark.py`).
 *   **🌉 Weights & Biases Bridge:** Use `log_to_wandb(tracker)` to seamlessly stream GradTracer's diagnostics (zombie ratios, health scores, Popularity Gini) directly into your existing W&B dashboards.
 *   **🤖 Universal JSON Export:** Replaced legacy XML with standard causal JSON output for flawless integration with modern LLM coding agents.
+*   **📈 Human-Readable Visualizations:** Beautiful Seaborn/Matplotlib 3-panel distributions to intuitively understand popular bias, dead neurons, and oscillating gradients at a glance.
 
 ### 3. Auto-Compression Suite & IDE Extension (v0.7)
 Instead of blindly pruning based on weight magnitude, GradTracer uses training dynamics to guide compression:

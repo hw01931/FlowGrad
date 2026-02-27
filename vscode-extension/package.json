@@ -19,6 +19,10 @@
             {
                 "command": "gradtracer.applyRecipe",
                 "title": "GradTracer: Apply Compression Recipe"
+            },
+            {
+                "command": "gradtracer.show3DInspector",
+                "title": "GradTracer: Show 3D Node Inspector"
             }
         ]
     },

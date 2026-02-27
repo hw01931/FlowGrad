@@ -266,13 +266,13 @@ class EmbeddingTracker:
         bias = self.popularity_bias()
         
         return {
-            "num_embeddings": self.num_embeddings,
-            "dead_count": len(dead),
-            "dead_pct": len(dead) / self.num_embeddings * 100,
-            "zombie_count": len(zombies),
-            "zombie_pct": len(zombies) / self.num_embeddings * 100,
-            "coverage_pct": bias["coverage"] * 100,
-            "gini": bias["gini"]
+            "num_embeddings": int(self.num_embeddings),
+            "dead_count": int(len(dead)),
+            "dead_pct": float(len(dead) / self.num_embeddings * 100),
+            "zombie_count": int(len(zombies)),
+            "zombie_pct": float(len(zombies) / self.num_embeddings * 100),
+            "coverage_pct": float(bias["coverage"] * 100),
+            "gini": float(bias["gini"])
         }
 
     def report(self) -> None:
