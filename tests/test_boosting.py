@@ -1,8 +1,8 @@
 """Tests for BoostingTracker."""
 import pytest
 
-from flowgrad.analyzers.boosting import BoostingTracker
-from flowgrad.snapshot import BoostingRoundRecord
+from gradtracer.analyzers.boosting import BoostingTracker
+from gradtracer.snapshot import BoostingRoundRecord
 
 
 class TestBoostingTrackerManual:
@@ -109,5 +109,5 @@ class TestBoostingReport:
                 feature_importance={"feat_a": float(100 + i * 10), "feat_b": float(50 - i * 2)},
             )
         report = tracker.report()
-        assert "FlowGrad" in report
+        assert "GradTracer" in report
         assert "feat_a" in report

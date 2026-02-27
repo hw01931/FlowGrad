@@ -3,8 +3,8 @@ import pytest
 import matplotlib
 matplotlib.use("Agg")  # Non-interactive backend for testing
 
-from flowgrad.snapshot import LayerSnapshot, SnapshotStore, StepRecord
-from flowgrad.snapshot import BoostingStore, BoostingRoundRecord
+from gradtracer.snapshot import LayerSnapshot, SnapshotStore, StepRecord
+from gradtracer.snapshot import BoostingStore, BoostingRoundRecord
 
 
 def _make_dl_store(n_steps=10, n_layers=3):
@@ -50,49 +50,49 @@ def _make_boosting_store(n_rounds=20, n_features=5):
 
 class TestDLPlots:
     def test_loss_plot(self):
-        from flowgrad.viz.plots import DLPlotAPI
+        from gradtracer.viz.plots import DLPlotAPI
         store = _make_dl_store()
         api = DLPlotAPI(store)
         fig = api.loss()
         assert fig is not None
 
     def test_velocity_heatmap(self):
-        from flowgrad.viz.plots import DLPlotAPI
+        from gradtracer.viz.plots import DLPlotAPI
         store = _make_dl_store()
         api = DLPlotAPI(store)
         fig = api.velocity_heatmap()
         assert fig is not None
 
     def test_gradient_flow(self):
-        from flowgrad.viz.plots import DLPlotAPI
+        from gradtracer.viz.plots import DLPlotAPI
         store = _make_dl_store()
         api = DLPlotAPI(store)
         fig = api.gradient_flow()
         assert fig is not None
 
     def test_weight_distribution(self):
-        from flowgrad.viz.plots import DLPlotAPI
+        from gradtracer.viz.plots import DLPlotAPI
         store = _make_dl_store()
         api = DLPlotAPI(store)
         fig = api.weight_distribution()
         assert fig is not None
 
     def test_health_dashboard(self):
-        from flowgrad.viz.plots import DLPlotAPI
+        from gradtracer.viz.plots import DLPlotAPI
         store = _make_dl_store()
         api = DLPlotAPI(store)
         fig = api.health_dashboard()
         assert fig is not None
 
     def test_gradient_snr(self):
-        from flowgrad.viz.plots import DLPlotAPI
+        from gradtracer.viz.plots import DLPlotAPI
         store = _make_dl_store()
         api = DLPlotAPI(store)
         fig = api.gradient_snr()
         assert fig is not None
 
     def test_full_report(self):
-        from flowgrad.viz.plots import DLPlotAPI
+        from gradtracer.viz.plots import DLPlotAPI
         store = _make_dl_store()
         api = DLPlotAPI(store)
         fig = api.full_report()
@@ -101,35 +101,35 @@ class TestDLPlots:
 
 class TestBoostingPlots:
     def test_eval_metrics(self):
-        from flowgrad.viz.plots import BoostingPlotAPI
+        from gradtracer.viz.plots import BoostingPlotAPI
         store = _make_boosting_store()
         api = BoostingPlotAPI(store)
         fig = api.eval_metrics()
         assert fig is not None
 
     def test_feature_drift(self):
-        from flowgrad.viz.plots import BoostingPlotAPI
+        from gradtracer.viz.plots import BoostingPlotAPI
         store = _make_boosting_store()
         api = BoostingPlotAPI(store)
         fig = api.feature_drift()
         assert fig is not None
 
     def test_feature_importance_heatmap(self):
-        from flowgrad.viz.plots import BoostingPlotAPI
+        from gradtracer.viz.plots import BoostingPlotAPI
         store = _make_boosting_store()
         api = BoostingPlotAPI(store)
         fig = api.feature_importance_heatmap()
         assert fig is not None
 
     def test_overfitting_detector(self):
-        from flowgrad.viz.plots import BoostingPlotAPI
+        from gradtracer.viz.plots import BoostingPlotAPI
         store = _make_boosting_store()
         api = BoostingPlotAPI(store)
         fig = api.overfitting_detector()
         assert fig is not None
 
     def test_full_report(self):
-        from flowgrad.viz.plots import BoostingPlotAPI
+        from gradtracer.viz.plots import BoostingPlotAPI
         store = _make_boosting_store()
         api = BoostingPlotAPI(store)
         fig = api.full_report()

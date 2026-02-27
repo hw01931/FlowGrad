@@ -8,7 +8,7 @@ Supports:
   - Any model (before/after training comparison)
 
 Usage:
-    from flowgrad import SklearnTracker
+    from gradtracer import SklearnTracker
 
     # Gradient Boosting (warm_start)
     tracker = SklearnTracker()
@@ -28,7 +28,7 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 
 import numpy as np
 
-from flowgrad.snapshot import BoostingRoundRecord, BoostingStore
+from gradtracer.snapshot import BoostingRoundRecord, BoostingStore
 
 
 class SklearnTracker:
@@ -282,13 +282,13 @@ class SklearnTracker:
     # Analysis & reporting (delegates to shared boosting infrastructure)
     # ------------------------------------------------------------------
     def report(self) -> None:
-        from flowgrad.diagnostics import generate_boosting_report
+        from gradtracer.diagnostics import generate_boosting_report
         rep = generate_boosting_report(self.store)
         print(rep)
 
     @property
     def plot(self):
-        from flowgrad.viz.plots import BoostingPlotAPI
+        from gradtracer.viz.plots import BoostingPlotAPI
         return BoostingPlotAPI(self.store)
 
     @property

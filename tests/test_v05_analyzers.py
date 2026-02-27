@@ -1,7 +1,7 @@
 """Tests for v0.5 analyzers: Saliency, Quantization, Distillation, PEFT."""
 import torch
 import torch.nn as nn
-from flowgrad import FlowTracker, SaliencyAnalyzer, QuantizationAdvisor, DistillationTracker, PEFTTracker
+from gradtracer import FlowTracker, SaliencyAnalyzer, QuantizationAdvisor, DistillationTracker, PEFTTracker
 
 
 def _train_tracker(model, steps=10):

@@ -1,5 +1,5 @@
 """
-FlowGrad Embedding Tracker — RecSys Diagnostics.
+GradTracer Embedding Tracker — RecSys Diagnostics.
 
 Tracks per-embedding training dynamics (velocity, frequency, zombie states)
 to diagnose representation collapse, cold-start failures, and embedding drift.
@@ -185,7 +185,7 @@ class EmbeddingTracker:
         s = self.summary()
         lines = []
         lines.append("=" * 60)
-        lines.append(f"  FlowGrad — Embedding Dynamics ('{self.name}')")
+        lines.append(f"  GradTracer — Embedding Dynamics ('{self.name}')")
         lines.append("=" * 60)
         lines.append(f"📊 Matrix: {self.num_embeddings} x {self.embedding_dim}")
         lines.append(f"🔍 Coverage (updated at least once): {s['coverage_pct']:.1f}%")

@@ -1,11 +1,11 @@
 """
-FlowGrad — ML Training Dynamics Tracker
+GradTracer — ML Training Dynamics Tracker
 
 One-line layer-by-layer visualization for PyTorch & boosting models.
 Advanced compression diagnostics, feature engineering, and AI-native agent output.
 
 Usage (PyTorch):
-    from flowgrad import FlowTracker
+    from gradtracer import FlowTracker
     tracker = FlowTracker(model)
     for epoch in range(100):
         loss = train(model)
@@ -13,13 +13,13 @@ Usage (PyTorch):
     tracker.report()
 
 Usage (XGBoost / LightGBM / CatBoost):
-    from flowgrad import BoostingTracker
+    from gradtracer import BoostingTracker
     tracker = BoostingTracker()
     model = xgb.train(params, dtrain, callbacks=[tracker.as_xgb_callback()])
     tracker.report()
 
 Usage (Compression):
-    from flowgrad import CompressionTracker
+    from gradtracer import CompressionTracker
     tracker = CompressionTracker(model, eval_fn=accuracy_fn)
     result = tracker.auto_compress(performance_floor=0.95)
 
@@ -30,29 +30,29 @@ Usage (AI Agent Mode):
 
 __version__ = "0.5.0"
 
-from flowgrad.tracker import FlowTracker
-from flowgrad.analyzers.boosting import BoostingTracker
-from flowgrad.analyzers.sklearn_tracker import SklearnTracker
-from flowgrad.analyzers.features import FeatureAnalyzer
-from flowgrad.analyzers.compression import CompressionTracker
-from flowgrad.analyzers.saliency import SaliencyAnalyzer
-from flowgrad.analyzers.quantization import QuantizationAdvisor
-from flowgrad.analyzers.distillation import DistillationTracker
-from flowgrad.analyzers.peft import PEFTTracker
-from flowgrad.analyzers.embedding import EmbeddingTracker
-from flowgrad.analyzers.tree_dynamics import TreeDynamicsTracker
-from flowgrad.agent import AgentExporter
-from flowgrad.history import HistoryTracker
+from gradtracer.tracker import FlowTracker
+from gradtracer.analyzers.boosting import BoostingTracker
+from gradtracer.analyzers.sklearn_tracker import SklearnTracker
+from gradtracer.analyzers.features import FeatureAnalyzer
+from gradtracer.analyzers.compression import CompressionTracker
+from gradtracer.analyzers.saliency import SaliencyAnalyzer
+from gradtracer.analyzers.quantization import QuantizationAdvisor
+from gradtracer.analyzers.distillation import DistillationTracker
+from gradtracer.analyzers.peft import PEFTTracker
+from gradtracer.analyzers.embedding import EmbeddingTracker
+from gradtracer.analyzers.tree_dynamics import TreeDynamicsTracker
+from gradtracer.agent import AgentExporter
+from gradtracer.history import HistoryTracker
 
 
 def info():
     """
-    Print information about FlowGrad and its optional dependencies.
+    Print information about GradTracer and its optional dependencies.
     Useful for debugging installation or reporting issues.
     """
     import sys
     print("=" * 45)
-    print(f"🌊 FlowGrad version: {__version__}")
+    print(f"🌊 GradTracer version: {__version__}")
     print(f"🐍 Python version:   {sys.version.split(' ')[0]}")
     print("=" * 45)
     print("📦 Optional Dependencies:")

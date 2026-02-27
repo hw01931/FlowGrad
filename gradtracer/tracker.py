@@ -11,7 +11,7 @@ from typing import Any, Dict, List, Optional, TYPE_CHECKING
 
 import numpy as np
 
-from flowgrad.snapshot import LayerSnapshot, SnapshotStore, StepRecord
+from gradtracer.snapshot import LayerSnapshot, SnapshotStore, StepRecord
 
 if TYPE_CHECKING:
     pass  # torch types only for type checking
@@ -29,7 +29,7 @@ def _get_torch():
         except ImportError:
             raise ImportError(
                 "PyTorch is required for FlowTracker. "
-                "Install it with: pip install flowgrad[torch]"
+                "Install it with: pip install gradtracer[torch]"
             )
     return _torch
 
@@ -105,7 +105,7 @@ class FlowTracker:
         (Cursor, Copilot, Antigravity, etc.).
 
         The output includes:
-        - Experiment history (previous runs from .flowgrad/history.jsonl)
+        - Experiment history (previous runs from .gradtracer/history.jsonl)
         - Current environment (optimizer, scheduler, architecture)
         - Training state (step, loss)
         - Diagnostics with math/logic explanations and prescriptions
@@ -117,7 +117,7 @@ class FlowTracker:
         Returns:
             XML string optimized for AI agent parsing.
         """
-        from flowgrad.agent import AgentExporter
+        from gradtracer.agent import AgentExporter
         return AgentExporter.export_dl(
             self,
             run_name=self.run_name,
@@ -213,14 +213,14 @@ class FlowTracker:
         """
         Generate and print a text diagnostic report of the training so far.
         """
-        from flowgrad.diagnostics import generate_dl_report
+        from gradtracer.diagnostics import generate_dl_report
         rep = generate_dl_report(self.store, top_k=top_k)
         print(rep)
 
     @property
     def plot(self):
         """Access the visualization API."""
-        from flowgrad.viz.plots import DLPlotAPI
+        from gradtracer.viz.plots import DLPlotAPI
         return DLPlotAPI(self.store)
 
     @property

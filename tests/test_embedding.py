@@ -1,8 +1,8 @@
 """Tests for v0.5 EmbeddingTracker module."""
 import torch
 import torch.nn as nn
-from flowgrad import EmbeddingTracker
-from flowgrad.agent import AgentExporter
+from gradtracer import EmbeddingTracker
+from gradtracer.agent import AgentExporter
 
 
 def test_embedding_dead_detection():
@@ -100,5 +100,5 @@ def test_embedding_report_and_xml():
     assert "Embedding Dynamics" in report
     
     xml = AgentExporter.export_embedding(tracker)
-    assert "<flowgrad_embedding_report" in xml
+    assert "<gradtracer_embedding_report" in xml
     assert "DEAD_EMBEDDINGS" in xml  # Since 80% are dead

@@ -19,7 +19,7 @@ from typing import Dict, List, Optional, Tuple
 
 import numpy as np
 
-from flowgrad.snapshot import SnapshotStore
+from gradtracer.snapshot import SnapshotStore
 
 
 class DistillationTracker:
@@ -116,7 +116,7 @@ class DistillationTracker:
             {student_layer: {"teacher_snr": float, "student_snr": float,
                              "status": "OK" | "NOISY"}}
         """
-        from flowgrad.analyzers.health import gradient_snr_per_layer
+        from gradtracer.analyzers.health import gradient_snr_per_layer
 
         t_snr = gradient_snr_per_layer(self.t_store)
         s_snr = gradient_snr_per_layer(self.s_store)

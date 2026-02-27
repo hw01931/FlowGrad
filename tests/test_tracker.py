@@ -19,7 +19,7 @@ def _make_simple_model():
 def model_and_tracker():
     """Fixture: simple model + tracker."""
     import torch
-    from flowgrad import FlowTracker
+    from gradtracer import FlowTracker
 
     model = _make_simple_model()
     tracker = FlowTracker(model)
@@ -39,7 +39,7 @@ class TestFlowTrackerInit:
 
     def test_includes_bias_when_requested(self):
         import torch
-        from flowgrad import FlowTracker
+        from gradtracer import FlowTracker
         model = _make_simple_model()
         tracker = FlowTracker(model, include_bias=True)
         has_bias = any("bias" in n for n in tracker._param_names)

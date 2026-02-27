@@ -18,7 +18,7 @@ from typing import Dict, List, Tuple
 
 import numpy as np
 
-from flowgrad.snapshot import SnapshotStore
+from gradtracer.snapshot import SnapshotStore
 
 
 class SaliencyAnalyzer:

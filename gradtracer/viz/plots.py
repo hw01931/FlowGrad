@@ -1,5 +1,5 @@
 """
-Visualization suite for FlowGrad.
+Visualization suite for GradTracer.
 
 Provides DLPlotAPI (for PyTorch models) and BoostingPlotAPI (for tree models).
 All plots return matplotlib Figure objects for easy customization and saving.
@@ -14,7 +14,7 @@ import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
 from matplotlib.figure import Figure
 
-from flowgrad.snapshot import BoostingStore, SnapshotStore
+from gradtracer.snapshot import BoostingStore, SnapshotStore
 
 
 # ──────────────────────────────────────────────────────────────────────
@@ -98,7 +98,7 @@ class DLPlotAPI:
         Layer × Step heatmap showing weight change velocity.
         Hot = fast learning, Cold = stagnant.
         """
-        from flowgrad.analyzers.velocity import velocity_heatmap_data
+        from gradtracer.analyzers.velocity import velocity_heatmap_data
         data, layer_names, steps = velocity_heatmap_data(self.store)
 
         short_names = [_short_name(n) for n in layer_names]
@@ -192,7 +192,7 @@ class DLPlotAPI:
 
     def health_dashboard(self, figsize: Tuple[int, int] = (12, 5), **kwargs) -> Figure:
         """Bar chart of per-layer health scores (0-100)."""
-        from flowgrad.analyzers.health import layer_health_score
+        from gradtracer.analyzers.health import layer_health_score
 
         scores = layer_health_score(self.store)
         names = list(scores.keys())
@@ -228,7 +228,7 @@ class DLPlotAPI:
 
     def gradient_snr(self, figsize: Tuple[int, int] = (12, 5), **kwargs) -> Figure:
         """Plot gradient SNR per layer over time."""
-        from flowgrad.analyzers.health import gradient_snr_per_layer
+        from gradtracer.analyzers.health import gradient_snr_per_layer
 
         snr_data = gradient_snr_per_layer(self.store)
 
@@ -257,7 +257,7 @@ class DLPlotAPI:
         """All-in-one dashboard with 6 subplots."""
         fig = plt.figure(figsize=figsize)
         fig.patch.set_facecolor(PALETTE["bg"])
-        fig.suptitle("FlowGrad Training Report", fontsize=16,
+        fig.suptitle("GradTracer Training Report", fontsize=16,
                      color=PALETTE["text"], fontweight="bold")
 
         gs = fig.add_gridspec(3, 2, hspace=0.35, wspace=0.3)
@@ -274,7 +274,7 @@ class DLPlotAPI:
 
         # 2) Velocity heatmap
         ax2 = fig.add_subplot(gs[0, 1])
-        from flowgrad.analyzers.velocity import velocity_heatmap_data
+        from gradtracer.analyzers.velocity import velocity_heatmap_data
         data, layer_names, steps = velocity_heatmap_data(self.store)
         log_data = np.log10(data + 1e-12)
         ax2.imshow(log_data, aspect="auto", cmap="inferno", interpolation="nearest")
@@ -297,7 +297,7 @@ class DLPlotAPI:
 
         # 4) Health scores
         ax4 = fig.add_subplot(gs[1, 1])
-        from flowgrad.analyzers.health import layer_health_score
+        from gradtracer.analyzers.health import layer_health_score
         scores = layer_health_score(self.store)
         s_names = list(scores.keys())
         s_vals = list(scores.values())
@@ -311,7 +311,7 @@ class DLPlotAPI:
 
         # 5) Gradient SNR
         ax5 = fig.add_subplot(gs[2, 0])
-        from flowgrad.analyzers.health import gradient_snr_per_layer
+        from gradtracer.analyzers.health import gradient_snr_per_layer
         snr_data = gradient_snr_per_layer(self.store)
         cmap = plt.cm.get_cmap("cool", max(len(snr_data), 1))
         for idx, (name, series) in enumerate(snr_data.items()):
@@ -324,7 +324,7 @@ class DLPlotAPI:
 
         # 6) Velocity trends (top layers by latest velocity)
         ax6 = fig.add_subplot(gs[2, 1])
-        from flowgrad.analyzers.velocity import velocity_per_layer
+        from gradtracer.analyzers.velocity import velocity_per_layer
         vel_data = velocity_per_layer(self.store)
         # Sort by latest velocity, show top 5
         sorted_layers = sorted(
@@ -539,7 +539,7 @@ class BoostingPlotAPI:
         """All-in-one boosting dashboard."""
         fig = plt.figure(figsize=figsize)
         fig.patch.set_facecolor(PALETTE["bg"])
-        fig.suptitle("FlowGrad Boosting Report", fontsize=16,
+        fig.suptitle("GradTracer Boosting Report", fontsize=16,
                      color=PALETTE["text"], fontweight="bold")
 
         gs = fig.add_gridspec(2, 2, hspace=0.35, wspace=0.3)

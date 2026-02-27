@@ -76,7 +76,7 @@ class TreeDynamicsTracker:
         stats = self.extract_dynamics()
         lines = []
         lines.append("=" * 60)
-        lines.append("  FlowGrad — Tree Dynamics (Node-Level Analysis)")
+        lines.append("  GradTracer — Tree Dynamics (Node-Level Analysis)")
         lines.append("=" * 60)
         lines.append(f"🌳 Trees analyzed: {stats['num_trees']}")
         lines.append(f"🍃 Total leaves: {stats['total_leaves']} (Max Depth: {stats['max_depth_reached']})")

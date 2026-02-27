@@ -42,7 +42,7 @@ def _make_redundant_data(n_samples=200, seed=42):
 class TestSklearnTrackerWarmStart:
     def test_gradient_boosting_classifier(self):
         from sklearn.ensemble import GradientBoostingClassifier
-        from flowgrad import SklearnTracker
+        from gradtracer import SklearnTracker
 
         X, y, names = _make_classification_data()
         model = GradientBoostingClassifier(
@@ -56,7 +56,7 @@ class TestSklearnTrackerWarmStart:
 
     def test_gradient_boosting_regressor(self):
         from sklearn.ensemble import GradientBoostingRegressor
-        from flowgrad import SklearnTracker
+        from gradtracer import SklearnTracker
 
         X, y, names = _make_regression_data()
         model = GradientBoostingRegressor(
@@ -69,7 +69,7 @@ class TestSklearnTrackerWarmStart:
 
     def test_with_validation(self):
         from sklearn.ensemble import GradientBoostingClassifier
-        from flowgrad import SklearnTracker
+        from gradtracer import SklearnTracker
 
         X, y, names = _make_classification_data(n_samples=300)
         X_train, X_val = X[:200], X[200:]
@@ -89,7 +89,7 @@ class TestSklearnTrackerWarmStart:
 class TestSklearnTrackerForest:
     def test_random_forest(self):
         from sklearn.ensemble import RandomForestClassifier
-        from flowgrad import SklearnTracker
+        from gradtracer import SklearnTracker
 
         X, y, names = _make_classification_data()
         model = RandomForestClassifier(n_estimators=20, random_state=42)
@@ -102,7 +102,7 @@ class TestSklearnTrackerForest:
 class TestSklearnTrackerPartialFit:
     def test_sgd_classifier(self):
         from sklearn.linear_model import SGDClassifier
-        from flowgrad import SklearnTracker
+        from gradtracer import SklearnTracker
 
         X, y, names = _make_classification_data(n_samples=500)
         # Split into batches
@@ -120,7 +120,7 @@ class TestSklearnTrackerPartialFit:
 class TestSklearnTrackerReport:
     def test_report_runs(self):
         from sklearn.ensemble import GradientBoostingClassifier
-        from flowgrad import SklearnTracker
+        from gradtracer import SklearnTracker
 
         X, y, names = _make_classification_data()
         model = GradientBoostingClassifier(
@@ -130,7 +130,7 @@ class TestSklearnTrackerReport:
         tracker.track_warm_start(model, X, y, step_size=10)
 
         report = tracker.report()
-        assert "FlowGrad" in report
+        assert "GradTracer" in report
 
 
 # ======================================================================
@@ -139,7 +139,7 @@ class TestSklearnTrackerReport:
 
 class TestFeatureInteractions:
     def test_correlation_method(self):
-        from flowgrad.analyzers.features import FeatureAnalyzer
+        from gradtracer.analyzers.features import FeatureAnalyzer
         from sklearn.ensemble import RandomForestRegressor
 
         X, y, names = _make_regression_data()
@@ -153,7 +153,7 @@ class TestFeatureInteractions:
         assert "synergy_score" in interactions[0]
 
     def test_permutation_method(self):
-        from flowgrad.analyzers.features import FeatureAnalyzer
+        from gradtracer.analyzers.features import FeatureAnalyzer
         from sklearn.ensemble import RandomForestClassifier
 
         X, y, names = _make_classification_data()
@@ -168,7 +168,7 @@ class TestFeatureInteractions:
 
 class TestFeatureSuggestions:
     def test_suggest_features(self):
-        from flowgrad.analyzers.features import FeatureAnalyzer
+        from gradtracer.analyzers.features import FeatureAnalyzer
         from sklearn.ensemble import RandomForestRegressor
 
         X, y, names = _make_regression_data()
@@ -183,7 +183,7 @@ class TestFeatureSuggestions:
 
     def test_interaction_feature_suggested_for_product_data(self):
         """When y = x0 * x1, the product feature should be highly ranked."""
-        from flowgrad.analyzers.features import FeatureAnalyzer
+        from gradtracer.analyzers.features import FeatureAnalyzer
         from sklearn.ensemble import RandomForestRegressor
 
         X, y, names = _make_regression_data()
@@ -204,7 +204,7 @@ class TestFeatureSuggestions:
 
 class TestRedundancy:
     def test_detects_redundant_features(self):
-        from flowgrad.analyzers.features import FeatureAnalyzer
+        from gradtracer.analyzers.features import FeatureAnalyzer
         from sklearn.ensemble import RandomForestClassifier
 
         X, y, names = _make_redundant_data()
@@ -221,7 +221,7 @@ class TestRedundancy:
 
 class TestFeatureClusters:
     def test_clusters(self):
-        from flowgrad.analyzers.features import FeatureAnalyzer
+        from gradtracer.analyzers.features import FeatureAnalyzer
         from sklearn.ensemble import RandomForestClassifier
 
         X, y, names = _make_classification_data(n_features=8)
@@ -237,7 +237,7 @@ class TestFeatureClusters:
 
 class TestFeatureReport:
     def test_full_report(self):
-        from flowgrad.analyzers.features import FeatureAnalyzer
+        from gradtracer.analyzers.features import FeatureAnalyzer
         from sklearn.ensemble import RandomForestRegressor
 
         X, y, names = _make_regression_data()

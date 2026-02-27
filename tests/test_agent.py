@@ -5,7 +5,7 @@ import json
 
 def test_history_tracker_append_and_get():
     """Test JSONL history append and retrieval."""
-    from flowgrad.history import HistoryTracker
+    from gradtracer.history import HistoryTracker
 
     path = HistoryTracker._get_path()
     if os.path.exists(path):
@@ -27,7 +27,7 @@ def test_history_tracker_append_and_get():
 
 def test_history_empty():
     """Test empty history."""
-    from flowgrad.history import HistoryTracker
+    from gradtracer.history import HistoryTracker
 
     path = HistoryTracker._get_path()
     if os.path.exists(path):
@@ -41,7 +41,7 @@ def test_agent_xml_structure():
     """Test XML output structure with optimizer and scheduler context."""
     import torch
     import torch.nn as nn
-    from flowgrad import FlowTracker
+    from gradtracer import FlowTracker
 
     model = nn.Sequential(
         nn.Linear(10, 32),
@@ -70,7 +70,7 @@ def test_agent_xml_structure():
     xml = tracker.export_for_agent(include_history=False, save=False)
 
     # Verify all XML sections
-    assert "<flowgrad_agent_report>" in xml
+    assert "<gradtracer_agent_report>" in xml
     assert "<environment>" in xml
     assert "Adam" in xml
     assert "StepLR" in xml
@@ -81,15 +81,15 @@ def test_agent_xml_structure():
     assert "<current_step>5</current_step>" in xml
     assert "<diagnostics>" in xml
     assert "<layer_health_summary>" in xml
-    assert "</flowgrad_agent_report>" in xml
+    assert "</gradtracer_agent_report>" in xml
 
 
 def test_agent_xml_with_history():
     """Test that previous runs appear in experiment_history."""
     import torch
     import torch.nn as nn
-    from flowgrad import FlowTracker
-    from flowgrad.history import HistoryTracker
+    from gradtracer import FlowTracker
+    from gradtracer.history import HistoryTracker
 
     path = HistoryTracker._get_path()
     if os.path.exists(path):
@@ -123,7 +123,7 @@ def test_agent_explanation_engine():
     """Test that findings include explanation tags with logic and description."""
     import torch
     import torch.nn as nn
-    from flowgrad import FlowTracker
+    from gradtracer import FlowTracker
 
     # Create a model that will trigger dead neurons
     model = nn.Sequential(
@@ -160,7 +160,7 @@ def test_agent_no_optimizer():
     """Test that XML works even without optimizer/scheduler."""
     import torch
     import torch.nn as nn
-    from flowgrad import FlowTracker
+    from gradtracer import FlowTracker
 
     model = nn.Linear(5, 1)
     tracker = FlowTracker(model, run_name="minimal_test")
@@ -168,6 +168,6 @@ def test_agent_no_optimizer():
 
     xml = tracker.export_for_agent(include_history=False, save=False)
 
-    assert "<flowgrad_agent_report>" in xml
+    assert "<gradtracer_agent_report>" in xml
     assert "Not provided" in xml  # optimizer not given
     assert "None" in xml  # scheduler not given

@@ -66,7 +66,7 @@ def setup():
 class TestCompressionSnapshot:
     def test_snapshot_records_stats(self, setup):
         model, X, y, eval_fn = setup
-        from flowgrad import CompressionTracker
+        from gradtracer import CompressionTracker
 
         tracker = CompressionTracker(model, eval_fn=eval_fn)
         snap = tracker.snapshot("original")
@@ -81,7 +81,7 @@ class TestCompressionSnapshot:
 
     def test_multiple_snapshots(self, setup):
         model, X, y, eval_fn = setup
-        from flowgrad import CompressionTracker
+        from gradtracer import CompressionTracker
 
         tracker = CompressionTracker(model, eval_fn=eval_fn)
         tracker.snapshot("original")
@@ -97,7 +97,7 @@ class TestCompressionSnapshot:
 class TestAutoCompress:
     def test_binary_search_pruning(self, setup):
         model, X, y, eval_fn = setup
-        from flowgrad import CompressionTracker
+        from gradtracer import CompressionTracker
 
         tracker = CompressionTracker(model, eval_fn=eval_fn)
         result = tracker.auto_compress(
@@ -116,7 +116,7 @@ class TestAutoCompress:
 
     def test_grid_search_pruning(self, setup):
         model, X, y, eval_fn = setup
-        from flowgrad import CompressionTracker
+        from gradtracer import CompressionTracker
 
         tracker = CompressionTracker(model, eval_fn=eval_fn)
         result = tracker.auto_compress(
@@ -133,7 +133,7 @@ class TestAutoCompress:
 class TestLayerSensitivity:
     def test_sensitivity_profiling(self, setup):
         model, X, y, eval_fn = setup
-        from flowgrad import CompressionTracker
+        from gradtracer import CompressionTracker
 
         tracker = CompressionTracker(model, eval_fn=eval_fn)
         results = tracker.layer_sensitivity(
@@ -147,7 +147,7 @@ class TestLayerSensitivity:
 
     def test_nonuniform_recommendation(self, setup):
         model, X, y, eval_fn = setup
-        from flowgrad import CompressionTracker
+        from gradtracer import CompressionTracker
 
         tracker = CompressionTracker(model, eval_fn=eval_fn)
         tracker.layer_sensitivity(sparsity_levels=[0.1, 0.3, 0.5])
@@ -161,7 +161,7 @@ class TestLayerSensitivity:
 class TestCompressionReport:
     def test_report_basic(self, setup):
         model, X, y, eval_fn = setup
-        from flowgrad import CompressionTracker
+        from gradtracer import CompressionTracker
 
         tracker = CompressionTracker(model, eval_fn=eval_fn)
         tracker.snapshot("original")
@@ -169,13 +169,13 @@ class TestCompressionReport:
         tracker.snapshot("pruned_30%")
 
         report = tracker.report()
-        assert "FlowGrad" in report
+        assert "GradTracer" in report
         assert "original" in report
         assert "pruned_30%" in report
 
     def test_report_with_sensitivity(self, setup):
         model, X, y, eval_fn = setup
-        from flowgrad import CompressionTracker
+        from gradtracer import CompressionTracker
 
         tracker = CompressionTracker(model, eval_fn=eval_fn)
         tracker.snapshot("original")
@@ -188,7 +188,7 @@ class TestCompressionReport:
 class TestCompressionPlots:
     def test_tradeoff_curve(self, setup):
         model, X, y, eval_fn = setup
-        from flowgrad import CompressionTracker
+        from gradtracer import CompressionTracker
         import matplotlib
         matplotlib.use("Agg")
 
@@ -202,7 +202,7 @@ class TestCompressionPlots:
 
     def test_compression_timeline(self, setup):
         model, X, y, eval_fn = setup
-        from flowgrad import CompressionTracker
+        from gradtracer import CompressionTracker
         import matplotlib
         matplotlib.use("Agg")
 
@@ -214,7 +214,7 @@ class TestCompressionPlots:
 
     def test_sensitivity_heatmap(self, setup):
         model, X, y, eval_fn = setup
-        from flowgrad import CompressionTracker
+        from gradtracer import CompressionTracker
         import matplotlib
         matplotlib.use("Agg")
 
@@ -227,7 +227,7 @@ class TestCompressionPlots:
 
 class TestVIFCollinearity:
     def test_suggest_features_with_vif(self):
-        from flowgrad import FeatureAnalyzer
+        from gradtracer import FeatureAnalyzer
         from sklearn.ensemble import RandomForestRegressor
 
         rng = np.random.RandomState(42)
@@ -252,7 +252,7 @@ class TestVIFCollinearity:
                 assert "collinearity_warning" in s
 
     def test_no_collinearity_check(self):
-        from flowgrad import FeatureAnalyzer
+        from gradtracer import FeatureAnalyzer
         from sklearn.ensemble import RandomForestRegressor
 
         rng = np.random.RandomState(42)

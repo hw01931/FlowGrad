@@ -8,7 +8,7 @@ from typing import Dict, List
 
 import numpy as np
 
-from flowgrad.snapshot import SnapshotStore
+from gradtracer.snapshot import SnapshotStore
 
 
 def gradient_snr_per_layer(store: SnapshotStore) -> Dict[str, List[float]]:

@@ -24,7 +24,7 @@ from __future__ import annotations
 
 from typing import Any, Dict, List, Optional
 
-from flowgrad.snapshot import BoostingRoundRecord, BoostingStore
+from gradtracer.snapshot import BoostingRoundRecord, BoostingStore
 
 
 class BoostingTracker:
@@ -63,13 +63,13 @@ class BoostingTracker:
             import xgboost as xgb
         except ImportError:
             raise ImportError(
-                "XGBoost is required. Install: pip install flowgrad[xgboost]"
+                "XGBoost is required. Install: pip install gradtracer[xgboost]"
             )
 
         tracker = self
         tracker._framework = "xgboost"
 
-        class FlowGradXGBCallback(xgb.callback.TrainingCallback):
+        class GradTracerXGBCallback(xgb.callback.TrainingCallback):
             def after_iteration(self, model, epoch, evals_log):
                 if (epoch + 1) % tracker.track_every != 0:
                     return False  # continue training
@@ -98,7 +98,7 @@ class BoostingTracker:
                 tracker.store.add_round(record)
                 return False  # continue training
 
-        return FlowGradXGBCallback()
+        return GradTracerXGBCallback()
 
     # ------------------------------------------------------------------
     # LightGBM callback
@@ -162,7 +162,7 @@ class BoostingTracker:
         tracker = self
         tracker._framework = "catboost"
 
-        class FlowGradCatBoostCallback:
+        class GradTracerCatBoostCallback:
             def after_iteration(self, info):
                 iteration = info.iteration + 1
 
@@ -184,7 +184,7 @@ class BoostingTracker:
                 tracker.store.add_round(record)
                 return True  # continue training
 
-        return FlowGradCatBoostCallback()
+        return GradTracerCatBoostCallback()
 
     # ------------------------------------------------------------------
     # Manual step (framework-agnostic)
@@ -215,14 +215,14 @@ class BoostingTracker:
     # ------------------------------------------------------------------
     def report(self) -> None:
         """Generate and print a text diagnostic report."""
-        from flowgrad.diagnostics import generate_boosting_report
+        from gradtracer.diagnostics import generate_boosting_report
         rep = generate_boosting_report(self.store)
         print(rep)
 
     @property
     def plot(self):
         """Access the boosting visualization API."""
-        from flowgrad.viz.plots import BoostingPlotAPI
+        from gradtracer.viz.plots import BoostingPlotAPI
         return BoostingPlotAPI(self.store)
 
     @property

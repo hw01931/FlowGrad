@@ -7,7 +7,7 @@ from typing import Dict, List, Tuple
 
 import numpy as np
 
-from flowgrad.snapshot import SnapshotStore
+from gradtracer.snapshot import SnapshotStore
 
 
 def velocity_per_layer(store: SnapshotStore) -> Dict[str, List[float]]:

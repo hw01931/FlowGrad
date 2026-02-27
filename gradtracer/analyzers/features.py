@@ -1,5 +1,5 @@
 """
-Feature Engineering Analyzer — FlowGrad's key differentiator.
+Feature Engineering Analyzer — GradTracer's key differentiator.
 
 Goes beyond static feature importance by analyzing:
   - Feature interactions (synergy between feature pairs)
@@ -13,7 +13,7 @@ Unlike `df.corr()` or `model.feature_importances_`:
   - Suggests CONCRETE new features to engineer
 
 Usage:
-    from flowgrad.analyzers.features import FeatureAnalyzer
+    from gradtracer.analyzers.features import FeatureAnalyzer
 
     analyzer = FeatureAnalyzer(model, X_train, y_train, feature_names=X.columns)
     analyzer.interactions(top_k=10)         # Top feature pairs by interaction strength
@@ -533,7 +533,7 @@ class FeatureAnalyzer:
         """Generate a comprehensive feature engineering report."""
         lines = []
         lines.append("=" * 60)
-        lines.append("  FlowGrad — Feature Engineering Report")
+        lines.append("  GradTracer — Feature Engineering Report")
         lines.append("=" * 60)
         lines.append("")
         lines.append(f"📊 Features analyzed: {len(self.feature_names)}")
@@ -641,7 +641,7 @@ class FeaturePlotAPI:
         """Heatmap of feature interaction strengths."""
         import matplotlib.pyplot as plt
 
-        from flowgrad.viz.plots import PALETTE, _apply_style
+        from gradtracer.viz.plots import PALETTE, _apply_style
 
         interactions = self.analyzer.interactions(top_k=top_k * 3, method="correlation")
 
@@ -681,7 +681,7 @@ class FeaturePlotAPI:
     def suggestion_chart(self, top_k: int = 10, figsize=(10, 5)):
         """Bar chart of top feature combination suggestions by lift."""
         import matplotlib.pyplot as plt
-        from flowgrad.viz.plots import PALETTE, _apply_style
+        from gradtracer.viz.plots import PALETTE, _apply_style
 
         suggestions = self.analyzer.suggest_features(top_k=top_k)
         positive = [s for s in suggestions if s["lift"] > 0]
@@ -716,7 +716,7 @@ class FeaturePlotAPI:
     def redundancy_graph(self, threshold: float = 0.95, figsize=(10, 8)):
         """Network-style visualization of redundant feature pairs."""
         import matplotlib.pyplot as plt
-        from flowgrad.viz.plots import PALETTE, _apply_style
+        from gradtracer.viz.plots import PALETTE, _apply_style
 
         redundant = self.analyzer.redundant_features(threshold=threshold)
 
@@ -767,7 +767,7 @@ class FeaturePlotAPI:
     def cluster_map(self, figsize=(12, 5)):
         """Visualization of feature clusters."""
         import matplotlib.pyplot as plt
-        from flowgrad.viz.plots import PALETTE, _apply_style
+        from gradtracer.viz.plots import PALETTE, _apply_style
 
         clusters = self.analyzer.feature_clusters()
 

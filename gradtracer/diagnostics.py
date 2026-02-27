@@ -7,7 +7,7 @@ from __future__ import annotations
 
 from typing import List
 
-from flowgrad.snapshot import BoostingStore, SnapshotStore
+from gradtracer.snapshot import BoostingStore, SnapshotStore
 
 
 # ──────────────────────────────────────────────────────────────────────
@@ -21,12 +21,12 @@ def generate_dl_report(store: SnapshotStore, top_k: int = 5) -> str:
     Returns:
         Formatted text report with findings and prescriptions.
     """
-    from flowgrad.analyzers.velocity import detect_stagnation, detect_explosion
-    from flowgrad.analyzers.health import layer_health_score, gradient_snr_per_layer
+    from gradtracer.analyzers.velocity import detect_stagnation, detect_explosion
+    from gradtracer.analyzers.health import layer_health_score, gradient_snr_per_layer
 
     lines: List[str] = []
     lines.append("=" * 60)
-    lines.append("  FlowGrad — DL Training Diagnostic Report")
+    lines.append("  GradTracer — DL Training Diagnostic Report")
     lines.append("=" * 60)
     lines.append("")
 
@@ -144,7 +144,7 @@ def generate_boosting_report(store: BoostingStore) -> str:
     """
     lines: List[str] = []
     lines.append("=" * 60)
-    lines.append("  FlowGrad — Boosting Model Diagnostic Report")
+    lines.append("  GradTracer — Boosting Model Diagnostic Report")
     lines.append("=" * 60)
     lines.append("")
 

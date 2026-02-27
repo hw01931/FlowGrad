@@ -2,7 +2,7 @@
 import pytest
 import math
 
-from flowgrad.snapshot import LayerSnapshot, SnapshotStore, StepRecord
+from gradtracer.snapshot import LayerSnapshot, SnapshotStore, StepRecord
 
 
 def _make_store_with_steps(n_steps=10, n_layers=3):
@@ -69,14 +69,14 @@ def _make_store_exploding():
 
 class TestVelocityAnalyzer:
     def test_velocity_per_layer(self):
-        from flowgrad.analyzers.velocity import velocity_per_layer
+        from gradtracer.analyzers.velocity import velocity_per_layer
         store = _make_store_with_steps()
         result = velocity_per_layer(store)
         assert len(result) == 3
         assert all(len(v) == 10 for v in result.values())
 
     def test_velocity_heatmap_data(self):
-        from flowgrad.analyzers.velocity import velocity_heatmap_data
+        from gradtracer.analyzers.velocity import velocity_heatmap_data
         store = _make_store_with_steps()
         data, names, steps = velocity_heatmap_data(store)
         assert data.shape == (3, 10)
@@ -84,20 +84,20 @@ class TestVelocityAnalyzer:
         assert len(steps) == 10
 
     def test_detect_stagnation(self):
-        from flowgrad.analyzers.velocity import detect_stagnation
+        from gradtracer.analyzers.velocity import detect_stagnation
         store = _make_store_stagnant()
         alerts = detect_stagnation(store, threshold=1e-7, min_consecutive=5)
         assert len(alerts) >= 1
         assert alerts[0]["name"] == "layer_0.weight"
 
     def test_no_false_stagnation(self):
-        from flowgrad.analyzers.velocity import detect_stagnation
+        from gradtracer.analyzers.velocity import detect_stagnation
         store = _make_store_with_steps()
         alerts = detect_stagnation(store, threshold=1e-15)
         assert len(alerts) == 0
 
     def test_detect_explosion(self):
-        from flowgrad.analyzers.velocity import detect_explosion
+        from gradtracer.analyzers.velocity import detect_explosion
         store = _make_store_exploding()
         alerts = detect_explosion(store, threshold=100.0)
         assert len(alerts) >= 1
@@ -107,7 +107,7 @@ class TestVelocityAnalyzer:
 
 class TestHealthAnalyzer:
     def test_gradient_snr(self):
-        from flowgrad.analyzers.health import gradient_snr_per_layer
+        from gradtracer.analyzers.health import gradient_snr_per_layer
         store = _make_store_with_steps()
         snr = gradient_snr_per_layer(store)
         assert len(snr) == 3
@@ -116,7 +116,7 @@ class TestHealthAnalyzer:
             assert all(s >= 0 for s in series)
 
     def test_dead_neuron_ratio(self):
-        from flowgrad.analyzers.health import dead_neuron_ratio_per_layer
+        from gradtracer.analyzers.health import dead_neuron_ratio_per_layer
         store = _make_store_with_steps()
         result = dead_neuron_ratio_per_layer(store)
         assert len(result) == 3
@@ -125,7 +125,7 @@ class TestHealthAnalyzer:
         assert result["layer_2.weight"][0] == pytest.approx(0.2)
 
     def test_health_score_range(self):
-        from flowgrad.analyzers.health import layer_health_score
+        from gradtracer.analyzers.health import layer_health_score
         store = _make_store_with_steps()
         scores = layer_health_score(store)
         assert len(scores) == 3

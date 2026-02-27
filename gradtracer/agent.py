@@ -1,5 +1,5 @@
 """
-FlowGrad Agent Mode — Structured XML export for AI coding assistants.
+GradTracer Agent Mode — Structured XML export for AI coding assistants.
 
 Generates diagnostic output optimized for AI agents (Cursor, Copilot, Antigravity).
 Employs Statistical Causal Reasoning by combining multiple metrics (LR, Loss Trend, SNR)
@@ -17,7 +17,7 @@ import textwrap
 from typing import Any, Dict, List, Optional
 from xml.sax.saxutils import escape
 
-from flowgrad.history import HistoryTracker
+from gradtracer.history import HistoryTracker
 
 
 # ======================================================================
@@ -120,7 +120,7 @@ def _line(name: str, value: Any, indent: int = 2, **attrs) -> str:
 
 class AgentExporter:
     """
-    Exports FlowGrad diagnostics into structured XML for AI agents.
+    Exports GradTracer diagnostics into structured XML for AI agents.
     Uses Causal Reasoning to combine multiple metrics and suppress false positives.
     """
 
@@ -132,8 +132,8 @@ class AgentExporter:
         include_history: bool = True,
         save: bool = True,
     ) -> str:
-        from flowgrad.analyzers.velocity import detect_stagnation, detect_explosion
-        from flowgrad.analyzers.health import layer_health_score, gradient_snr_per_layer
+        from gradtracer.analyzers.velocity import detect_stagnation, detect_explosion
+        from gradtracer.analyzers.health import layer_health_score, gradient_snr_per_layer
 
         store = tracker.store
 
@@ -257,7 +257,7 @@ class AgentExporter:
             HistoryTracker.append_run(run_data)
 
         # ── 4. Assemble XML ─────────────────────────────────────────
-        xml_parts = ['<flowgrad_agent_report>']
+        xml_parts = ['<gradtracer_agent_report>']
 
         # A. History
         if include_history:
@@ -324,7 +324,7 @@ class AgentExporter:
             )
         xml_parts.append(_tag("layer_health_summary", "\n".join(health_lines)))
 
-        xml_parts.append("</flowgrad_agent_report>")
+        xml_parts.append("</gradtracer_agent_report>")
         return "\n\n".join(xml_parts)
 
     @classmethod
@@ -332,7 +332,7 @@ class AgentExporter:
         """
         Export causal XML diagnostics specifically for an EmbeddingTracker.
         """
-        xml_parts = [f'<flowgrad_embedding_report layer="{escape(tracker.name)}">']
+        xml_parts = [f'<gradtracer_embedding_report layer="{escape(tracker.name)}">']
         findings_xml = []
         
         summary = tracker.summary()
@@ -386,6 +386,6 @@ class AgentExporter:
             status = _line("status", "HEALTHY — Embedding matrix shows stable learning dynamics and adequate coverage.", 0)
             xml_parts.append(_tag("diagnostics", status))
 
-        xml_parts.append("</flowgrad_embedding_report>")
+        xml_parts.append("</gradtracer_embedding_report>")
         return "\n\n".join(xml_parts)
 

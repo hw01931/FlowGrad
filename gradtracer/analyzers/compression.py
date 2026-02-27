@@ -1,7 +1,7 @@
 """
 CompressionTracker — Model compression diagnostics for pruning, quantization, and LoRA.
 
-Goal-based auto-search: set a performance floor, FlowGrad finds the optimal compression.
+Goal-based auto-search: set a performance floor, GradTracer finds the optimal compression.
 
 Usage:
     tracker = CompressionTracker(model, eval_fn=lambda m: accuracy(m, X_val, y_val))
@@ -42,7 +42,7 @@ def _get_torch():
         except ImportError:
             raise ImportError(
                 "PyTorch is required for CompressionTracker. "
-                "Install with: pip install flowgrad[torch]"
+                "Install with: pip install gradtracer[torch]"
             )
     return _torch
 
@@ -505,7 +505,7 @@ class CompressionTracker:
         """Generate comprehensive compression diagnostic report."""
         lines = []
         lines.append("=" * 60)
-        lines.append("  FlowGrad — Compression Diagnostic Report")
+        lines.append("  GradTracer — Compression Diagnostic Report")
         lines.append("=" * 60)
         lines.append("")
 
@@ -594,7 +594,7 @@ class CompressionTracker:
 
     @property
     def plot(self):
-        from flowgrad.viz.plots import CompressionPlotAPI
+        from gradtracer.viz.plots import CompressionPlotAPI
         return CompressionPlotAPI(self)
 
     @property

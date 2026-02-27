@@ -17,7 +17,7 @@ from typing import Dict, List, Tuple
 
 import numpy as np
 
-from flowgrad.snapshot import SnapshotStore
+from gradtracer.snapshot import SnapshotStore
 
 
 class QuantizationAdvisor:
@@ -48,7 +48,7 @@ class QuantizationAdvisor:
             {layer_name: {"weight_range": float, "weight_std": float,
                           "grad_snr": float, "recommended_bits": int}}
         """
-        from flowgrad.analyzers.health import gradient_snr_per_layer
+        from gradtracer.analyzers.health import gradient_snr_per_layer
 
         snr_data = gradient_snr_per_layer(self.store)
         profiles = {}

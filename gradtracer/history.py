@@ -3,7 +3,7 @@ import os
 from datetime import datetime
 from typing import Dict, Any, List
 
-HISTORY_DIR = ".flowgrad"
+HISTORY_DIR = ".gradtracer"
 HISTORY_FILE = "history.jsonl"
 
 
