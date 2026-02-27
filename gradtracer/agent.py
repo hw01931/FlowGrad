@@ -87,12 +87,34 @@ def _scan_architecture(model) -> Dict[str, Any]:
             trainable_params += p.numel()
 
     return {
-        "total_params": total_params,
-        "trainable_params": trainable_params,
+        "total_params_raw": total_params,
+        "trainable_params_raw": trainable_params,
         "normalization_layers": norm_layers,
         "dropout_layers": dropout_layers,
         "activations": sorted(activation_types) if activation_types else ["None detected"],
     }
+
+def _format_params(n: int) -> str:
+    if n >= 1e6:
+        return f"{n/1e6:.2f}M"
+    elif n >= 1e3:
+        return f"{n/1e3:.2f}K"
+    return str(n)
+
+def _scan_environment(tracker) -> Dict[str, Any]:
+    """Scan hardware, batch size, and amp state (best effort based on PyTorch globals)."""
+    import torch
+    env = {}
+    
+    # Best-effort AMP detection
+    env["mixed_precision_active"] = torch.is_autocast_enabled()
+    
+    # Best-effort VRAM
+    if torch.cuda.is_available():
+        env["gpu_memory_allocated_gb"] = round(torch.cuda.memory_allocated() / (1024**3), 2)
+        env["gpu_memory_reserved_gb"] = round(torch.cuda.memory_reserved() / (1024**3), 2)
+        
+    return env
 
 
 import json
@@ -137,6 +159,22 @@ class AgentExporter:
 
         current_lr = sched_info.get("current_lr") or opt_info.get("lr", 0.0)
         is_adaptive = opt_info.get("is_adaptive", False)
+        
+        # Best effort total batch size approximation (via first tracked layer input shape if available)
+        # Note: True batch size belongs to dataloader, so we approximate or leave blank.
+        last_batch_size = "Unknown"
+        if len(store.layer_names) > 0:
+             first_val = store.get_layer_history(list(store.layer_names)[0])
+             if first_val and hasattr(first_val[-1], 'last_seen_batch_size'):
+                  last_batch_size = first_val[-1].last_seen_batch_size
+                  
+        # Global Gradient Norm approximation (Sum of layer norms)
+        global_grad_norm = 0.0
+        for name in store.layer_names:
+            h = store.get_layer_history(name)
+            if h and h[-1].mean_grad_norm:
+                global_grad_norm += h[-1].mean_grad_norm ** 2
+        global_grad_norm = round(global_grad_norm ** 0.5, 4)
 
         # ── 2. Causal Engine: Evaluate Rules ────────────────────────
         findings_json = []
@@ -168,6 +206,7 @@ class AgentExporter:
                     "implies": "Benign noise. Adaptive optimizers absorb raw variance. The model is in a stable fine-tuning phase despite high stochasticity.",
                     "action": "NO_INTERVENTION_REQUIRED",
                     "expected_effect": "Suppress false alarms. Continue training.",
+                    "layers_affected": list(low_snr_layers.keys())[:5],
                     "confidence": 0.85
                 })
             else:
@@ -179,6 +218,7 @@ class AgentExporter:
                     "action": "INCREASE_BATCH_SIZE_OR_REDUCE_LR",
                     "expected_effect": "Reduce gradient variance to restore directional descent.",
                     "risk": "May slow down epoch processing time if batch size is increased.",
+                    "layers_affected": list(low_snr_layers.keys())[:5],
                     "confidence": 0.75
                 })
                 issue_summaries.append("LOW_SNR")
@@ -240,15 +280,17 @@ class AgentExporter:
             HistoryTracker.append_run(run_data)
 
         # ── 4. Assemble JSON ─────────────────────────────────────────
+        env_details = _scan_environment(tracker)
+        env_details["optimizer"] = opt_info["str"]
+        env_details["lr_scheduler"] = sched_info["str"]
+        env_details["estimated_batch_size"] = last_batch_size
+
         report = {
             "gradtracer_agent_report": {
-                "environment": {
-                    "optimizer": opt_info["str"],
-                    "lr_scheduler": sched_info["str"]
-                },
+                "environment": env_details,
                 "model_architecture": {
-                    "total_params": f"{arch['total_params']/1e6:.2f}M",
-                    "trainable_params": f"{arch['trainable_params']/1e6:.2f}M",
+                    "total_params": _format_params(arch["total_params_raw"]),
+                    "trainable_params": _format_params(arch["trainable_params_raw"]),
                     "normalization_layers": arch["normalization_layers"],
                     "dropout_layers": arch["dropout_layers"],
                     "activations": arch["activations"]
@@ -264,7 +306,10 @@ class AgentExporter:
                 report["gradtracer_agent_report"]["experiment_history"] = past[-3:]
 
         # B. Training State
-        state = {"current_step": store.num_steps}
+        state = {
+            "current_step": store.num_steps,
+            "global_grad_norm": global_grad_norm,
+        }
         if valid_losses:
             state["initial_loss"] = round(valid_losses[0], 4)
             state["current_loss"] = round(valid_losses[-1], 4)
@@ -286,10 +331,21 @@ class AgentExporter:
         for name in sorted(health, key=lambda k: health[k]):
             score = health[name]
             status = "CRITICAL" if score < 40 else "WARNING" if score < 70 else "HEALTHY"
+            
+            # Determine precise reason
+            reason = "Stable dynamics."
+            if name in low_snr_layers and low_snr_layers[name] < 0.01:
+                reason = f"Severe Low SNR ({low_snr_layers[name]:.4f})"
+            elif name in stagnant:
+                reason = "Gradient Velocity Stagnated near 0."
+            elif name in dead_layers:
+                reason = ">50% Dead Neurons Detected."
+                
             health_lines.append({
                 "layer": name,
                 "health": round(score, 0),
-                "status": status
+                "status": status,
+                "flags": reason
             })
         report["gradtracer_agent_report"]["layer_health_summary"] = health_lines
 
