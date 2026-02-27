@@ -72,7 +72,7 @@ GradTracer's recommendations are backed by formal statistical tests. As demonstr
 
 ## 🚀 Quick Start
 ```bash
-pip install git+https://github.com/hw01931/GradTracer.git
+pip install gradtracer
 ```
 
 ## 🧩 Experimental Modules
